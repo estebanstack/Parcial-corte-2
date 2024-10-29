@@ -1,0 +1,129 @@
+from mesa import Agent, Model
+from mesa.time import RandomActivation
+
+# Se definen los agentes
+class SumaAgent(Agent):
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def operar(self, a, b):
+        return a + b
+
+class RestaAgent(Agent):
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def operar(self, a, b):
+        return a - b
+
+class MultiplicacionAgent(Agent):
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def operar(self, a, b):
+        return a * b
+
+class DivisionAgent(Agent):
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def operar(self, a, b):
+        if b != 0:
+            return a / b
+        else:
+            return "Error: División por cero"
+
+class PotenciaAgent(Agent):
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def operar(self, a, b):
+        return a ** b
+
+# Agente Entrada/Salida
+class ESAgent(Agent):
+    def __init__(self, unique_id, model):
+        super().__init__(unique_id, model)
+
+    def recibir_expresion(self, expresion):
+        # Analizar y delegar la operación
+        return self.procesar_expresion(expresion)
+
+    def procesar_expresion(self, expresion):
+        tokens = expresion.split()
+        
+        # Manejo de las potencias
+        while '^' in tokens:
+            indice = tokens.index('^')
+            base = float(tokens[indice - 1])
+            exponente = float(tokens[indice + 1])
+            resultado = self.model.potencia_agent.operar(base, exponente)
+            tokens[indice - 1:indice + 2] = [str(resultado)]
+
+        # Despues las multiplicaciones y divisiones
+        i = 0
+        while i < len(tokens):
+            if tokens[i] == '*':
+                a = float(tokens[i - 1])
+                b = float(tokens[i + 1])
+                resultado = self.model.multiplicacion_agent.operar(a, b)
+                tokens[i - 1:i + 2] = [str(resultado)]
+                i = 0  # Reiniciar el índice para volver a empezar
+            elif tokens[i] == '/':
+                a = float(tokens[i - 1])
+                b = float(tokens[i + 1])
+                resultado = self.model.division_agent.operar(a, b)
+                tokens[i - 1:i + 2] = [str(resultado)]
+                i = 0
+            else:
+                i += 1
+
+        # Y por ultimo sumas y restas
+        i = 0
+        while i < len(tokens):
+            if tokens[i] == '+':
+                a = float(tokens[i - 1])
+                b = float(tokens[i + 1])
+                resultado = self.model.suma_agent.operar(a, b)
+                tokens[i - 1:i + 2] = [str(resultado)]
+                i = 0
+            elif tokens[i] == '-':
+                a = float(tokens[i - 1])
+                b = float(tokens[i + 1])
+                resultado = self.model.resta_agent.operar(a, b)
+                tokens[i - 1:i + 2] = [str(resultado)]
+                i = 0
+            else:
+                i += 1
+
+        return float(tokens[0])
+
+# Modelo de la calculadora
+class CalculadoraModel(Model):
+    def __init__(self):
+        self.schedule = RandomActivation(self)
+
+        # Crear agentes
+        self.suma_agent = SumaAgent(1, self)
+        self.resta_agent = RestaAgent(2, self)
+        self.multiplicacion_agent = MultiplicacionAgent(3, self)
+        self.division_agent = DivisionAgent(4, self)
+        self.potencia_agent = PotenciaAgent(5, self)
+        self.es_agent = ESAgent(6, self)
+
+        # Añadir agentes al scheduler
+        self.schedule.add(self.suma_agent)
+        self.schedule.add(self.resta_agent)
+        self.schedule.add(self.multiplicacion_agent)
+        self.schedule.add(self.division_agent)
+        self.schedule.add(self.potencia_agent)
+        self.schedule.add(self.es_agent)
+
+    def step(self):
+        self.schedule.step()
+
+# Ejemplo de uso
+model = CalculadoraModel()
+expresion = "3 + 5 * 2 ^ 3 + 10"
+resultado = model.es_agent.recibir_expresion(expresion)
+print(f"Resultado de la expresión '{expresion}': {resultado}")
