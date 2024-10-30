@@ -1,1 +1,2 @@
-# Parcial-corte-2
+# Parcial Paradigmas de programación Corte 2
+# Esteban Castro Rojas
