@@ -23,7 +23,7 @@ class LectorExpresiones {
                 }
                 char.isLetter() -> {
                     currentToken.append(char)
-                    // Chequea si el token es una función matemática completa
+                    // Revisa si el token es una función matemática completa
                     for (function in functions) {
                         if (expression.startsWith(function, i)) {
                             if (currentToken.isNotEmpty()) {
