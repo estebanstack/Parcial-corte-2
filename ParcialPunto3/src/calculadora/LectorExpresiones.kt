@@ -66,7 +66,7 @@ class LectorExpresiones {
 
         for (token in tokens) {
             when {
-                token.toDoubleOrNull() != null -> output.add(token) // Si es un número
+                token.toDoubleOrNull() != null -> output.add(token) // Si es un numero
                 token in precedence.keys -> {
                     while (operators.isNotEmpty() &&
                         (precedence[operators.peek()] ?: 0) >= (precedence[token] ?: 0) &&
@@ -82,12 +82,12 @@ class LectorExpresiones {
                         output.add(operators.pop())
                     }
                     operators.pop() // Elimina el '(' de la pila
-                    // Si después del paréntesis hay una función, la agregamos a la salida
+                    // Si después del parentesis hay una funcion, la agregamos a la salida
                     if (operators.isNotEmpty() && operators.peek() in functions) {
                         output.add(operators.pop())
                     }
                 }
-                token in functions -> operators.push(token) // Si es una función
+                token in functions -> operators.push(token) // Si es una funcion
             }
         }
 
